@@ -26,7 +26,8 @@
         android:layout_height="wrap_content"
         android:text="LED"
         android:onClick="sendCommand"
-        android:clickable="false"/>
+        android:clickable="false"
+        android:visibility="gone"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/resultList"

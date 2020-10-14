@@ -18,14 +18,16 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
 public class ConnectionActivity extends AppCompatActivity {
 
-    ConnectionActivity activity = this;
-    BluetoothDevice connectedDevice;
-    BluetoothGatt deviceConnection;
+    public ConnectionActivity activity = this;
+    public BluetoothDevice connectedDevice;
+    public BluetoothGatt deviceConnection;
+    public BluetoothGattCharacteristic writeCharacteristic;
 
     private static final int REQUEST_ENABLE_BT = 1;
 
@@ -34,8 +36,8 @@ public class ConnectionActivity extends AppCompatActivity {
     final int STATUS_DISCONNECTED = 2;
 
     boolean ledOn = false;
-    String UUID_RX = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
-    String UUID_TX = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
+    String UUID_TX = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
+    String UUID_RX = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
 
 
     @Override
@@ -111,28 +113,27 @@ public class ConnectionActivity extends AppCompatActivity {
     public void sendCommand(View v){
 
         Button scanButton = activity.findViewById(R.id.ledButton);
-        BluetoothGattCharacteristic MwriteCharacteristic =
-                new BluetoothGattCharacteristic(UUID.fromString(UUID_TX),
-                        BluetoothGattCharacteristic.PROPERTY_WRITE,
-                        BluetoothGattCharacteristic.PERMISSION_WRITE);
         String str;
 
-        if(ledOn){
-            scanButton.setBackgroundColor(Color.LTGRAY);
-            str = "A";
-        } else {
-            scanButton.setBackgroundColor(Color.GREEN);
-            str = "B";
-        }
-        if((MwriteCharacteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE ) > 0) {
-            byte[] strBytes = str.getBytes();
-            byte[] bytes = MwriteCharacteristic.getValue();
-            MwriteCharacteristic.setValue(bytes);
-            boolean sendStatus = deviceConnection.writeCharacteristic(MwriteCharacteristic);
+        if((writeCharacteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE ) > 0) {
+
+
+            if(ledOn){
+                scanButton.setBackgroundColor(Color.GREEN);
+                str = "Hello";
+            } else {
+                str = "World!";
+                scanButton.setBackgroundColor(Color.LTGRAY);
+            }
+
+            System.out.println("writing...");
+            writeCharacteristic.setValue(str.getBytes());
+            System.out.println(Arrays.toString(writeCharacteristic.getValue()));
+            boolean success = deviceConnection.writeCharacteristic(writeCharacteristic);
+            System.out.println(success);
         } else {
             scanButton.setBackgroundColor(Color.LTGRAY);
             ledOn = !ledOn;
-            str = "B";
         }
         ledOn = !ledOn;
     }
@@ -170,23 +171,36 @@ public class ConnectionActivity extends AppCompatActivity {
         // Various callback methods defined by the BLE API.
         BluetoothGattCallback gattCallback =
                 new BluetoothGattCallback() {
+                    private final String TAG = BluetoothLeService.TAG;
+
                     @Override
                     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                         if (newState == BluetoothProfile.STATE_CONNECTED) {
-                            Log.i(BluetoothLeService.TAG, "Connected to GATT server.");
+                            Log.i(TAG, "Connected to GATT server.");
                             changeConnectedDevice(connectedDevice, STATUS_CONNECTED);
-
+                            gatt.discoverServices();
                         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                            Log.i(BluetoothLeService.TAG, "Disconnected from GATT server.");
+                            Log.i(TAG, "Disconnected from GATT server.");
                             changeConnectedDevice(connectedDevice, STATUS_DISCONNECTED);
                         }
                     }
+
 
                     @Override
                     // New services discovered
                     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                         if (status == BluetoothGatt.GATT_SUCCESS) {
+                            for (BluetoothGattService gattService : gatt.getServices()) {
+                                Log.i(TAG, "onServicesDiscovered: service=" + gattService.getUuid());
 
+                                for (BluetoothGattCharacteristic characteristic : gattService.getCharacteristics()) {
+                                    Log.i(TAG, "onServicesDiscovered: characteristic=" + characteristic.getUuid().toString());
+
+                                    if (characteristic.getUuid().toString().equals(UUID_RX.toLowerCase())) {
+                                        writeCharacteristic = characteristic;
+                                    }
+                                }
+                            }
                         } else {
                             Log.w(BluetoothLeService.TAG, "onServicesDiscovered received: " + status);
                         }
@@ -198,8 +212,13 @@ public class ConnectionActivity extends AppCompatActivity {
                                                      BluetoothGattCharacteristic characteristic,
                                                      int status) {
                         if (status == BluetoothGatt.GATT_SUCCESS) {
-
                         }
+                    }
+
+                    @Override
+                    public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+                        super.onCharacteristicWrite(gatt, characteristic, status);
+                        System.out.println("status: " + status);
                     }
                 };
 
@@ -227,6 +246,7 @@ public class ConnectionActivity extends AppCompatActivity {
                     // user interface.
                 } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                     //Do another thing
+                    System.out.print("found!!");
                 }
             }
         };
@@ -247,6 +267,7 @@ public class ConnectionActivity extends AppCompatActivity {
                 }
                 ((TextView) activity.findViewById(R.id.textViewConnectedDevice)).setText(newConnectName);
                 ((Button) activity.findViewById(R.id.ledButton)).setClickable(true);
+                activity.findViewById(R.id.ledButton).setVisibility(View.VISIBLE);
                 break;
 
             case STATUS_CONNECTING:
@@ -258,12 +279,25 @@ public class ConnectionActivity extends AppCompatActivity {
                 ((TextView) activity.findViewById(R.id.textViewConnectedDevice)).setText("None");
                 ((Button) activity.findViewById(R.id.ledButton)).setClickable(false);
                 ((Button) activity.findViewById(R.id.ledButton)).setBackgroundColor(Color.LTGRAY);
+                activity.findViewById(R.id.ledButton).setVisibility(View.GONE);
                 break;
         }
 
         //Update the connection status textview to the appropriate status.
         ((bleRecyclerViewAdapter) Objects.requireNonNull(resultList.getAdapter()))
                 .getRecyclerViewItem(position).textViewConnection.setText(newStatus);
+    }
+
+
+
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i + 1), 16));
+        }
+        return data;
     }
 
 }
