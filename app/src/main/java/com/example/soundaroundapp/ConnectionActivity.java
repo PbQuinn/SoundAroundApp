@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 //Import Bluetooth libraries
+import android.app.Activity;
 import android.bluetooth.*;
 import android.bluetooth.le.*;
 //Import Android libraries
@@ -12,38 +13,48 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
+
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.UUID;
 
 public class ConnectionActivity extends AppCompatActivity {
 
     public ConnectionActivity activity = this;
+    public MainActivity mainActivity;
     public BluetoothDevice connectedDevice;
     public BluetoothGatt deviceConnection;
     public BluetoothGattCharacteristic writeCharacteristic;
 
     private static final int REQUEST_ENABLE_BT = 1;
+    private static final int REQUEST_ENABLE_LOCATION = 1;
+
 
     final int STATUS_CONNECTED = 0;
     final int STATUS_CONNECTING = 1;
     final int STATUS_DISCONNECTED = 2;
 
-    boolean ledOn = false;
     String UUID_TX = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
     String UUID_RX = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
+
+    int connectionActivity = R.layout.activity_connection;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_connection);
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_LONG).show();
@@ -112,7 +123,7 @@ public class ConnectionActivity extends AppCompatActivity {
 
     public void sendCommand(View v){
 
-        Button scanButton = activity.findViewById(R.id.ledButton);
+        /*Button scanButton = activity.findViewById(R.id.ledButton);
         String str;
 
         if((writeCharacteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE ) > 0) {
@@ -135,7 +146,11 @@ public class ConnectionActivity extends AppCompatActivity {
             scanButton.setBackgroundColor(Color.LTGRAY);
             ledOn = !ledOn;
         }
-        ledOn = !ledOn;
+        ledOn = !ledOn;*/
+    }
+
+    public void homeButtonClick(View v){
+        finish();
     }
 
 
@@ -225,7 +240,6 @@ public class ConnectionActivity extends AppCompatActivity {
         deviceConnection = connectedDevice.connectGatt(this, false, gattCallback);
 
 
-
         // Handles various events fired by the Service.
 // ACTION_GATT_CONNECTED: connected to a GATT server.
 // ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
@@ -250,6 +264,16 @@ public class ConnectionActivity extends AppCompatActivity {
                 }
             }
         };
+
+        //Once connection is established and writeCharacteristic has been found, bundle it and send
+        //it to the main activity.
+        Intent intent = getIntent();
+        SoundAroundDevice soundAroundDevice = new SoundAroundDevice(connectedDevice, deviceConnection, writeCharacteristic);
+        Gson gson = new Gson();
+        String myJson = gson.toJson(soundAroundDevice);
+        intent.putExtra("myjson", myJson);
+
+
     }
 
 
@@ -261,13 +285,6 @@ public class ConnectionActivity extends AppCompatActivity {
         switch(connectionStatus){
             case STATUS_CONNECTED:
                 newStatus = "Connected!";
-                String newConnectName = device.getAddress();
-                if (device.getName() != null){
-                    newConnectName = results.get(position).getName();
-                }
-                ((TextView) activity.findViewById(R.id.textViewConnectedDevice)).setText(newConnectName);
-                ((Button) activity.findViewById(R.id.ledButton)).setClickable(true);
-                activity.findViewById(R.id.ledButton).setVisibility(View.VISIBLE);
                 break;
 
             case STATUS_CONNECTING:
@@ -276,10 +293,6 @@ public class ConnectionActivity extends AppCompatActivity {
 
             case STATUS_DISCONNECTED:
                 newStatus = "";
-                ((TextView) activity.findViewById(R.id.textViewConnectedDevice)).setText("None");
-                ((Button) activity.findViewById(R.id.ledButton)).setClickable(false);
-                ((Button) activity.findViewById(R.id.ledButton)).setBackgroundColor(Color.LTGRAY);
-                activity.findViewById(R.id.ledButton).setVisibility(View.GONE);
                 break;
         }
 
@@ -287,19 +300,6 @@ public class ConnectionActivity extends AppCompatActivity {
         ((bleRecyclerViewAdapter) Objects.requireNonNull(resultList.getAdapter()))
                 .getRecyclerViewItem(position).textViewConnection.setText(newStatus);
     }
-
-
-
-    public static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i + 1), 16));
-        }
-        return data;
-    }
-
 }
 
 
