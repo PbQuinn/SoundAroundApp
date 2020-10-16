@@ -12,7 +12,10 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -29,12 +32,15 @@ public class MainActivity  extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        connectionActivity.mainActivity = activity;
     }
 
     public void connectionButtonClick(View v){
-        Intent switchActivityIntent = new Intent(this, connectionActivity.getClass());
-        startActivity(switchActivityIntent);
+        //Package our current main activity and pass it
+        final Object objSent = activity;
+        final Bundle bundle = new Bundle();
+        bundle.putBinder("object_value", new ObjectWrapperForBinder(objSent));
+        //Launch the connection activity;
+        startActivity(new Intent(this, ConnectionActivity.class).putExtras(bundle));
     }
 
     public void saveNewName(View v){
@@ -67,7 +73,13 @@ public class MainActivity  extends AppCompatActivity {
         this.connectedDevice = device;
         this.deviceConnection = deviceConnection;
         this.writeCharacteristic = writeCharacteristic;
-        activity.findViewById(R.id.textViewConnectedDevice);
+        String deviceName = "Unknown Device";
+        if(device.getName() != null){
+            deviceName = device.getName();
+        } else {
+            deviceName = device.getAddress();
+        }
+        ((TextView) activity.findViewById(R.id.textViewConnectedDevice)).setText(deviceName);
     }
 
 }

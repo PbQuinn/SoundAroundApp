@@ -72,7 +72,11 @@ public class ConnectionActivity extends AppCompatActivity {
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
 
+        final Object passedActivity = ((ObjectWrapperForBinder) Objects.requireNonNull(Objects.requireNonNull(getIntent().getExtras()).getBinder("object_value"))).getData();
+        mainActivity = (MainActivity) passedActivity;
+
     }
+
 
     private BluetoothLeScanner bluetoothLeScanner =
             BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
@@ -81,7 +85,7 @@ public class ConnectionActivity extends AppCompatActivity {
 
     // Stops scanning after 10 seconds.
 
-    private static final long SCAN_PERIOD = 10000;
+    private static final long SCAN_PERIOD = 5000;
     ArrayList<BluetoothDevice> results = new ArrayList<>();
     RecyclerView resultList;
 
@@ -121,33 +125,6 @@ public class ConnectionActivity extends AppCompatActivity {
     }
 
 
-    public void sendCommand(View v){
-
-        /*Button scanButton = activity.findViewById(R.id.ledButton);
-        String str;
-
-        if((writeCharacteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE ) > 0) {
-
-
-            if(ledOn){
-                scanButton.setBackgroundColor(Color.GREEN);
-                str = "Hello";
-            } else {
-                str = "World!";
-                scanButton.setBackgroundColor(Color.LTGRAY);
-            }
-
-            System.out.println("writing...");
-            writeCharacteristic.setValue(str.getBytes());
-            System.out.println(Arrays.toString(writeCharacteristic.getValue()));
-            boolean success = deviceConnection.writeCharacteristic(writeCharacteristic);
-            System.out.println(success);
-        } else {
-            scanButton.setBackgroundColor(Color.LTGRAY);
-            ledOn = !ledOn;
-        }
-        ledOn = !ledOn;*/
-    }
 
     public void homeButtonClick(View v){
         finish();
@@ -267,11 +244,8 @@ public class ConnectionActivity extends AppCompatActivity {
 
         //Once connection is established and writeCharacteristic has been found, bundle it and send
         //it to the main activity.
-        Intent intent = getIntent();
-        SoundAroundDevice soundAroundDevice = new SoundAroundDevice(connectedDevice, deviceConnection, writeCharacteristic);
-        Gson gson = new Gson();
-        String myJson = gson.toJson(soundAroundDevice);
-        intent.putExtra("myjson", myJson);
+        mainActivity.updateConnectedDevice(connectedDevice, deviceConnection, writeCharacteristic);
+
 
 
     }
