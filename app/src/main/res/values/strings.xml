@@ -3,5 +3,6 @@
     <string name="ble_not_supported">This device does not support connection with SoundAround.</string>
     <string name="title_devices">Bluetooth Devices</string>
     <string name="error_bluetooth_not_supported">Sadly bluetooth is not supported on this device</string>
-    <string name="button">Press Me!</string>
+    <string name="button">Scan for Devices</string>
+    <string name="NoNameChange">Not Available</string>
 </resources>

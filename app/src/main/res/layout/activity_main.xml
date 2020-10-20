@@ -4,12 +4,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:fillViewport="true">
 
+
+    <ScrollView
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        tools:ignore="MissingConstraints">
 
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         tools:layout_editor_absoluteX="1dp"
         tools:layout_editor_absoluteY="1dp"
@@ -23,13 +31,13 @@
             android:text="SoundAround"
             android:textSize="36sp" />
 
+
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:srcCompat="@tools:sample/avatars"
-            android:contentDescription="TODO" />
-
+            android:layout_height="183dp"
+            android:contentDescription="TODO"
+            tools:srcCompat="@drawable/ic_soundaround_logo_final" />
 
         <View
             android:id="@+id/divider0"
@@ -46,7 +54,7 @@
                 android:id="@+id/textViewConnectedTo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textAlignment="viewEnd"
@@ -56,7 +64,7 @@
                 android:id="@+id/textViewConnectedDevice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+
                 android:textSize="18sp"
                 android:text="None" />
         </LinearLayout>
@@ -68,105 +76,19 @@
             android:text="Connect to a device"
             android:onClick="connectionButtonClick"/>
 
+        <Button
+            android:id="@+id/disconnectButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Disconnect"
+            android:onClick="disConnectDevice"/>
+
         <View
             android:id="@+id/divider1"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="?android:attr/listDivider" />
 
-        <LinearLayout
-                android:id="@+id/accordionItem1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/accordionItem1Name"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="20dp"
-                    android:layout_weight="90"
-                    android:text="Personal" />
-
-                <ImageButton
-                    android:id="@+id/accordionItem1DropDown"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="10"
-                    app:srcCompat="@android:drawable/arrow_down_float"
-                    android:onClick="foldAccordion1"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/personalLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="visible">
-
-                <LinearLayout
-                android:id="@+id/personalLayoutName"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp">
-
-                <TextView
-                    android:id="@+id/textViewDeviceName"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="40dp"
-                    android:text="Device Name:"
-                    android:layout_marginBottom="10dp"/>
-
-                <EditText
-                    android:id="@+id/editTextDeviceName"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="4"
-                    android:ems="10"
-                    android:inputType="textPersonName"
-                    android:text="Name" />
-
-                <Button
-                    android:id="@+id/saveButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Save"
-                    android:onClick="saveNewName"
-                    />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/personalLayoutDarkMode"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="10dp">
-
-                    <Switch
-                        android:id="@+id/switchDarkMode"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="40dp"
-                        android:layout_weight="1"
-                        android:text="Darkmode"
-                        android:textColor="@android:color/secondary_text_light"
-                       />
-                </LinearLayout>
-
-            </LinearLayout>
-
-        <View
-            android:id="@+id/divider2"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?android:attr/listDivider" />
 
         <LinearLayout
                 android:id="@+id/accordionItem2"
@@ -182,13 +104,13 @@
                     android:layout_weight="90"
                     android:text="Device Preferences" />
 
-                <ImageButton
-                    android:id="@+id/accordionItem2DropDown"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="10"
-                    android:onClick="foldAccordion2"
-                    app:srcCompat="@android:drawable/arrow_down_float" />
+            <ImageButton
+                android:id="@+id/accordionItem2DropDown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="10"
+                android:onClick="foldAccordion2"
+                android:src="@android:drawable/arrow_down_float" />
             </LinearLayout>
 
             <LinearLayout
@@ -201,14 +123,50 @@
                 android:visibility="visible">
 
                 <LinearLayout
+                    android:id="@+id/settingsIntensityTotal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_weight="5"
+                    android:orientation="horizontal">
+
+                    <SeekBar
+                        android:id="@+id/seekBarIntensity"
+                        style="@style/Widget.AppCompat.SeekBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="5"
+                        android:max="100"
+                        android:progress="50" />
+
+                    <TextView
+                        android:id="@+id/textViewIntensityTotal"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="40dp"
+                        android:layout_weight="3"
+                        android:text="Intensity:" />
+
+                    <TextView
+                        android:id="@+id/textViewIntensityAmount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="50%" />
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/settingsSensitivityTotal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:layout_marginBottom="10dp"
                     android:orientation="horizontal">
 
                     <SeekBar
-                        android:id="@+id/seekBar2"
+                        android:id="@+id/seekBarSensitivity"
                         style="@style/Widget.AppCompat.SeekBar"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -225,36 +183,30 @@
                         android:text="Sensitivity:" />
 
                     <TextView
-                        android:id="@+id/textView5"
+                        android:id="@+id/textViewSensitivityAmount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="+50dB" />
+                        android:text="50%" />
 
                 </LinearLayout>
 
                 <Switch
-                    android:id="@+id/switchLeft"
+                    android:id="@+id/switchBoth"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="40dp"
                     android:layout_weight="1"
-                    android:text="Darkmode"
-                    android:textColor="@android:color/secondary_text_light" />
-
-                <Switch
-                    android:id="@+id/switchRight"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="40dp"
-                    android:layout_weight="1"
-                    android:text="Darkmode"
-                    android:textColor="@android:color/secondary_text_light" />
+                    android:text="Device enabled"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:checked="true"
+                    tools:ignore="UseSwitchCompatOrMaterialXml" />
 
                 <LinearLayout
                     android:id="@+id/accordionItem2.1"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
                     <TextView
@@ -264,15 +216,15 @@
                         android:layout_gravity="center"
                         android:layout_marginStart="20dp"
                         android:layout_weight="90"
-                        android:text="Device Preferences" />
+                        android:text="Advanced Preferences" />
 
                     <ImageButton
                         android:id="@+id/accordionItem2.1DropDown"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="10"
-                        android:onClick="foldAccordion2"
-                        app:srcCompat="@android:drawable/arrow_down_float" />
+                        android:onClick="foldAccordion2p1"
+                        android:src="@android:drawable/arrow_down_float" />
 
 
                 </LinearLayout>
@@ -286,42 +238,23 @@
                     android:orientation="vertical"
                     android:visibility="visible">
 
-                    <LinearLayout
-                        android:id="@+id/settingsDeviationRight"
+                    <Switch
+                        android:id="@+id/switchLeft"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="40dp"
+                        android:layout_weight="1"
+                        android:text="Left Unit"
+                        android:layout_marginTop="10dp"
                         android:layout_marginBottom="10dp"
-                        android:orientation="horizontal">
-
-                        <SeekBar
-                            android:id="@+id/seekBarDeviationRight"
-                            style="@style/Widget.AppCompat.SeekBar"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="5"
-                            android:max="100"
-                            android:progress="50" />
-
-                        <TextView
-                            android:id="@+id/textViewDeviationRight"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="40dp"
-                            android:layout_weight="3"
-                            android:text="Deviation Left:" />
-
-                        <TextView
-                            android:id="@+id/textViewDeviationRightAmount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="+0dB" />
-                    </LinearLayout>
+                        android:checked="true"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
 
                     <LinearLayout
                         android:id="@+id/settingsDeviationLeft"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
                         android:layout_marginBottom="10dp"
                         android:orientation="horizontal">
 
@@ -332,7 +265,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="5"
                             android:max="100"
-                            android:progress="50" />
+                            android:progress="100" />
 
                         <TextView
                             android:id="@+id/textViewDeviationLeft"
@@ -340,14 +273,126 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="40dp"
                             android:layout_weight="3"
-                            android:text="Deviation Left:" />
+                            android:text="Left Sensitivity:" />
 
                         <TextView
                             android:id="@+id/textViewDeviationLeftAmount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="+0dB" />
+                            android:text="100%" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/settingsIntensityLeft"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:orientation="horizontal">
+
+                        <SeekBar
+                            android:id="@+id/seekBarIntensityLeft"
+                            style="@style/Widget.AppCompat.SeekBar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="5"
+                            android:max="100"
+                            android:progress="100" />
+
+                        <TextView
+                            android:id="@+id/textViewIntensityLeft"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="40dp"
+                            android:layout_weight="3"
+                            android:text="Left Intensity:" />
+
+                        <TextView
+                            android:id="@+id/textViewIntensityLeftAmount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="100%" />
+                    </LinearLayout>
+
+                    <Switch
+                        android:id="@+id/switchRight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:layout_marginStart="40dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_weight="1"
+                        android:checked="true"
+                        android:text="Right Unit"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+
+                    <LinearLayout
+                        android:id="@+id/settingsDeviationRight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:orientation="horizontal">
+
+                        <SeekBar
+                            android:id="@+id/seekBarDeviationRight"
+                            style="@style/Widget.AppCompat.SeekBar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="5"
+                            android:max="100"
+                            android:progress="100" />
+
+                        <TextView
+                            android:id="@+id/textViewDeviationRight"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="40dp"
+                            android:layout_weight="3"
+                            android:text="Right Sensitivity:" />
+
+                        <TextView
+                            android:id="@+id/textViewDeviationRightAmount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="100%" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/settingsIntensityRight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:orientation="horizontal">
+
+                        <SeekBar
+                            android:id="@+id/seekBarIntensityRight"
+                            style="@style/Widget.AppCompat.SeekBar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="5"
+                            android:max="100"
+                            android:progress="100" />
+
+                        <TextView
+                            android:id="@+id/textViewIntensityRight"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="40dp"
+                            android:layout_weight="3"
+                            android:text="Left Intensity:" />
+
+                        <TextView
+                            android:id="@+id/textViewIntensityRightAmount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="100%" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -362,6 +407,6 @@
 
     </LinearLayout>
 
-
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

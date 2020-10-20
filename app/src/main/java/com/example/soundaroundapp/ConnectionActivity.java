@@ -48,8 +48,6 @@ public class ConnectionActivity extends AppCompatActivity {
     String UUID_TX = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
     String UUID_RX = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
 
-    int connectionActivity = R.layout.activity_connection;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,22 +109,31 @@ public class ConnectionActivity extends AppCompatActivity {
                     resultList.setLayoutManager(new LinearLayoutManager(activity));
                     bleRecyclerViewAdapter bleViewAdapter = new bleRecyclerViewAdapter(activity, results, activity.getLayoutInflater());
                     resultList.setAdapter(bleViewAdapter);
+                    resultList.setVisibility(View.VISIBLE);
+                    findViewById(R.id.progressBarConnection).setVisibility(View.GONE);
 
                 }
             }, SCAN_PERIOD);
             mScanning = true;
             bluetoothLeScanner.startScan(leScanCallback);
+            findViewById(R.id.progressBarConnection).setVisibility(View.VISIBLE);
 
         } else {
             Toast.makeText(activity, "Already scanning, stopped!", Toast.LENGTH_SHORT).show();
             mScanning = false;
             bluetoothLeScanner.stopScan(leScanCallback);
+            findViewById(R.id.progressBarConnection).setVisibility(View.GONE);
         }
     }
 
 
 
     public void homeButtonClick(View v){
+        //Once connection is established and writeCharacteristic has been found, bundle it and send
+        //it to the main activity.
+        if(connectedDevice != null && deviceConnection != null && writeCharacteristic != null) {
+            mainActivity.updateConnectedDevice(connectedDevice, deviceConnection, writeCharacteristic);
+        }
         finish();
     }
 
@@ -215,37 +222,6 @@ public class ConnectionActivity extends AppCompatActivity {
                 };
 
         deviceConnection = connectedDevice.connectGatt(this, false, gattCallback);
-
-
-        // Handles various events fired by the Service.
-// ACTION_GATT_CONNECTED: connected to a GATT server.
-// ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
-// ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
-// ACTION_DATA_AVAILABLE: received data from the device. This can be a
-// result of read or notification operations.
-        final BroadcastReceiver gattUpdateReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                final String action = intent.getAction();
-                if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
-
-                } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-
-                } else if (BluetoothLeService.
-                        ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-                    // Show all the supported services and characteristics on the
-                    // user interface.
-                } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                    //Do another thing
-                    System.out.print("found!!");
-                }
-            }
-        };
-
-        //Once connection is established and writeCharacteristic has been found, bundle it and send
-        //it to the main activity.
-        mainActivity.updateConnectedDevice(connectedDevice, deviceConnection, writeCharacteristic);
-
 
 
     }
