@@ -107,8 +107,6 @@ public class MainActivity  extends AppCompatActivity {
     }
 
 
-
-
     public void foldAccordion2(View v){
         View foldDown = activity.findViewById(R.id.settingsLayout);
         int visible = foldDown.getVisibility();

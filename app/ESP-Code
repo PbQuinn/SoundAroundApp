@@ -1,0 +1,263 @@
+#include "driver/i2s.h"
+
+/*
+   Create a BLE server that, once we receive a connection, will send periodic notifications.
+   The service advertises itself as: 6E400001-B5A3-F393-E0A9-E50E24DCCA9E
+   Has a characteristic of: 6E400002-B5A3-F393-E0A9-E50E24DCCA9E - used for receiving data with "WRITE"
+*/
+
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <BLEUtils.h>
+#include <BLE2902.h>
+
+
+BLECharacteristic *pCharacteristic;
+
+bool deviceConnected = false;
+
+char bothPrefix = 'B';
+char leftPrefix = 'L';
+char rightPrefix = 'R';
+char sensitivityPrefix = 'S';
+char intensityPrefix = 'I';
+char enableDisablePrefix = 'O';
+
+float sensitivityBLE = 0.5;
+float intensityBLE = 0.5;
+float leftSensitivity = 1;
+float leftIntensity = 1;
+float rightSensitivity = 1;
+float rightIntensity = 1;
+bool leftEnabled = true;
+bool rightEnabled = true;
+bool enabled = true;
+
+
+std::string rxValue; // Could also make this a global var to access it in loop()
+
+#define SERVICE_UUID           "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+// UART service UUID
+#define CHARACTERISTIC_UUID_RX "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+#define CHARACTERISTIC_UUID_TX "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+
+
+class MyServerCallbacks: public BLEServerCallbacks {
+    void onConnect(BLEServer* pServer) {
+      deviceConnected = true;
+    };
+
+    void onDisconnect(BLEServer* pServer) {
+      deviceConnected = false;
+    }
+};
+
+
+
+class MyCallbacks: public BLECharacteristicCallbacks {
+
+    float getValue(char H, char T, char U) {
+      int hundreds = H - '0';
+      int tens = T - '0';
+      int units = U - '0';
+      return (max(min((hundreds * 1 + tens * 0.1 + units * 0.01), 1.0), 0.0));
+    }
+
+    void onWrite(BLECharacteristic *pCharacteristic) {
+      rxValue = pCharacteristic->getValue();
+
+      if (rxValue.length() > 0) {
+        char sideSelection = char(rxValue[0]);
+        char actionSelection = char(rxValue[1]);
+        // Do stuff based on the rxValue received from the app
+        if (sideSelection == bothPrefix) {
+          if (actionSelection == sensitivityPrefix) {
+            sensitivityBLE = getValue(char(rxValue[2]), char(rxValue[3]), char(rxValue[4]));
+          }
+          else if (actionSelection == intensityPrefix) {
+            intensityBLE = getValue(char(rxValue[2]), char(rxValue[3]), char(rxValue[4]));
+          }
+          else if (actionSelection == enableDisablePrefix){
+            char state = char(rxValue[2]);
+            if (state == '1') {
+              enabled = true;
+            } else {
+              enabled = false;
+            }
+          }
+        }
+        else if (sideSelection == leftPrefix) {
+          if (actionSelection == enableDisablePrefix) {
+            char state = char(rxValue[2]);
+            if (state == '1') {
+              leftEnabled = true;
+            } else {
+              leftEnabled = false;
+            }
+          }
+          else if (actionSelection == sensitivityPrefix){
+            leftSensitivity = getValue(char(rxValue[2]), char(rxValue[3]), char(rxValue[4]));
+          }
+          else if (actionSelection = intensityPrefix){
+            leftIntensity = getValue(char(rxValue[2]), char(rxValue[3]), char(rxValue[4]));
+          }
+        }
+        else if (sideSelection == rightPrefix) {
+          if (actionSelection == enableDisablePrefix) {
+            char state = char(rxValue[2]);
+            if (state == '1') {
+              rightEnabled = true;
+            } else {
+              rightEnabled = false;
+            }
+          }
+          else if (actionSelection == sensitivityPrefix){
+            rightSensitivity = getValue(char(rxValue[2]), char(rxValue[3]), char(rxValue[4]));
+          }
+          else if (actionSelection = intensityPrefix){
+            rightIntensity = getValue(char(rxValue[2]), char(rxValue[3]), char(rxValue[4]));
+          }
+        }
+      }
+    }
+};
+
+
+const i2s_port_t I2S_PORT = I2S_NUM_0;
+int32_t left = 0;
+int32_t right = 0;
+int bytes_read = 0;
+
+// the number of the LED pin
+const int rightMotor = 33; //
+const int leftMotor = 32;
+
+// setting PWM properties
+const int freq = 5000;
+const int rightChannel = 0;
+const int leftChannel = 1;
+const int resolution = 8;
+
+
+
+void setup() {
+  Serial.begin(9600);
+  // configure LED PWM functionalitites
+  ledcSetup(rightChannel, freq, resolution);
+  ledcSetup(leftChannel, freq, resolution);
+
+
+  // attach the channel to the GPIO to be controlled
+  ledcAttachPin(rightMotor, rightChannel);
+  ledcAttachPin(leftMotor, leftChannel);
+
+
+
+  esp_err_t err;
+
+  // The I2S config as per the example
+
+
+    const i2s_config_t i2s_config = {
+      .mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX), // Receive, not transfer
+      .sample_rate = 16000,                         // 16KHz
+      .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT, // could only get it to work with 32bits
+      .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT, // use left channel
+      .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
+      .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,     // Interrupt level 1
+      .dma_buf_count = 4,                           // number of buffers
+      .dma_buf_len = 8                              // 8 samples per buffer (minimum)
+  };
+
+  // The pin config as per the setup
+  const i2s_pin_config_t pin_config = {
+      .bck_io_num = 26,   // Serial Clock (SCK)
+      .ws_io_num = 25,    // Word Select (WS)
+      .data_out_num = I2S_PIN_NO_CHANGE, // not used (only for speakers)
+      .data_in_num = 27   // Serial Data (SD)
+  };
+
+  // Configuring the I2S driver and pins.
+  // This function must be called before any I2S driver read/write operations.
+
+  err = i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
+  if (err != ESP_OK) {
+    Serial.printf("Failed installing driver: %d\n", err);
+    while (true);
+  }
+
+  err = i2s_set_pin(I2S_PORT, &pin_config);
+  if (err != ESP_OK) {
+    Serial.printf("Failed setting pin: %d\n", err);
+    while (true);
+  }
+  Serial.println("I2S driver installed.");
+
+
+  // Create the BLE Device
+  BLEDevice::init("SOUNDAROUND"); // Give it a name
+
+  // Create the BLE Server
+  BLEServer *pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks());
+
+  // Create the BLE Service
+  BLEService *pService = pServer->createService(SERVICE_UUID);
+
+  // Create a BLE Characteristic
+  pCharacteristic = pService->createCharacteristic(
+                      CHARACTERISTIC_UUID_TX,
+                      BLECharacteristic::PROPERTY_NOTIFY
+                    );
+
+  pCharacteristic->addDescriptor(new BLE2902());
+
+  BLECharacteristic *pCharacteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_UUID_RX,
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+
+  pCharacteristic->setCallbacks(new MyCallbacks());
+
+  // Start the service
+  pService->start();
+
+  // Start advertising
+  pServer->getAdvertising()->start();
+  Serial.println("Waiting a client connection to notify...");
+
+}
+
+void loop() {
+  left = 0;
+  right = 0;
+  float intensity = pow(2, intensityBLE*7) + 19;
+  Serial.println(intensity);
+  float sensitivity = pow(10, sensitivityBLE*4+5);
+  Serial.println(sensitivity);
+  while(enabled == false){
+    ledcWrite(rightChannel, 0);
+    ledcWrite(leftChannel, 0);
+  }
+  int bytes_read = i2s_pop_sample(I2S_PORT, (char *)&right, portMAX_DELAY);
+  if (bytes_read > 0) {
+    Serial.print(right);
+    Serial.print(",");
+    if(abs(right)>=sensitivity*rightSensitivity && rightEnabled == true){
+      ledcWrite(rightChannel, intensity*rightIntensity);
+    }else{
+      ledcWrite(rightChannel, 0);
+    }
+  }
+  bytes_read = i2s_pop_sample(I2S_PORT, (char *)&left, portMAX_DELAY);
+  if (bytes_read > 0) {
+    Serial.println(left);
+    if(abs(left)>=sensitivity*leftSensitivity && leftEnabled == true){
+      ledcWrite(leftChannel, intensity*leftIntensity);
+    }else{
+      ledcWrite(leftChannel, 0);
+    }
+  }
+}
+
+
